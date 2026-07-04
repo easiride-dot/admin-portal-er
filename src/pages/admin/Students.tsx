@@ -134,7 +134,7 @@ export const Students = () => {
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">Students Management</h1>
           <p className="text-muted-foreground mt-1">Verify student IDs and manage profiles.</p>

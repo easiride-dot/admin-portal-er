@@ -74,7 +74,7 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Dashboard Overview</h1>
           <p className="text-muted-foreground mt-1">Welcome back, Admin. Here is what's happening today.</p>

@@ -165,7 +165,7 @@ export const Pricing = () => {
       <div className="bg-card border rounded-xl p-6">
         <h2 className="text-lg font-semibold mb-4">Surge Multipliers</h2>
         <p className="text-xs text-muted-foreground mb-4">These multipliers are applied on top of the base fare calculation.</p>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="border rounded-lg p-4 text-center">
             <p className="text-sm text-muted-foreground mb-1">Normal</p>
             <p className="text-2xl font-bold">{Number(config?.surge_normal ?? 1).toFixed(1)}x</p>

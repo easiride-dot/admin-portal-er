@@ -200,8 +200,8 @@ export const RideRequests = () => {
             }`}
           >
             <div className="p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-4 flex-1">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-start justify-between gap-4">
+                <div className="space-y-4 flex-1 w-full sm:w-auto">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center relative">
                       <User className="h-5 w-5 text-muted-foreground" />
@@ -256,7 +256,7 @@ export const RideRequests = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-3 min-w-[150px]">
+                <div className="flex flex-col items-end gap-3 min-w-[150px] sm:min-w-0">
                   <StatusBadge status={ride.status} />
                   <div className="text-right">
                     <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Type & Slot</div>

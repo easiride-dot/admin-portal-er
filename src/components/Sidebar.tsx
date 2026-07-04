@@ -33,7 +33,11 @@ const configItems = [
   { label: "Colleges", to: "/colleges", icon: Building2 },
 ];
 
-export const Sidebar = () => {
+type SidebarProps = {
+  onNavClick?: () => void;
+};
+
+export const Sidebar = ({ onNavClick }: SidebarProps) => {
   const location = useLocation();
   const { signOut } = useAuth();
   const inConfig = configItems.some((i) => location.pathname === i.to);
@@ -55,6 +59,7 @@ export const Sidebar = () => {
             <Link
               key={item.label}
               to={item.to}
+              onClick={onNavClick}
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive 
@@ -101,6 +106,7 @@ export const Sidebar = () => {
                   <Link
                     key={item.label}
                     to={item.to}
+                    onClick={onNavClick}
                     className={cn(
                       "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200",
                       isActive
@@ -123,7 +129,7 @@ export const Sidebar = () => {
           variant="ghost" 
           size="sm" 
           className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-xl"
-          onClick={signOut}
+          onClick={() => { signOut(); onNavClick?.(); }}
         >
           <LogOut className="h-4 w-4" />
           <span>Sign Out</span>

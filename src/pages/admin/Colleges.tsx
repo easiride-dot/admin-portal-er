@@ -132,7 +132,7 @@ export const Colleges = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Colleges</h1>
           <p className="text-sm text-muted-foreground">Manage colleges and their coordinates for student ride booking</p>
@@ -155,6 +155,7 @@ export const Colleges = () => {
         </div>
       ) : (
         <div className="border rounded-xl overflow-hidden bg-card">
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-secondary/30">
@@ -184,6 +185,7 @@ export const Colleges = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

@@ -108,7 +108,7 @@ export const Settings = () => {
           <Users className="h-5 w-5" /> User Capacity
         </h2>
 
-        <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-secondary/30 p-4 text-center">
             <p className="text-2xl font-bold">{userCount}</p>
             <p className="text-xs text-muted-foreground mt-1">Registered</p>
