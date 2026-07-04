@@ -132,6 +132,29 @@ export const RideRequests = () => {
       await logAdminAction("assign_driver", rideId, { driver_id: driverId, driver_name: driver.full_name });
       toast.success(`Awaiting ${driver.full_name}'s response`);
 
+      // Push notification to driver via Supabase Edge Function
+      try {
+        const { data: rideData } = await supabase
+          .from("rides")
+          .select("pickup, destination")
+          .eq("id", rideId)
+          .single();
+
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-push-notification`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_PUSH_NOTIFICATIONS_API_KEY },
+          body: JSON.stringify({
+            userId: driverId,
+            title: "New Ride Assigned",
+            message: `Pickup: ${rideData?.pickup || "N/A"} → ${rideData?.destination || "N/A"}`,
+            type: "ride",
+            url: "/dashboard",
+          }),
+        });
+      } catch {
+        // Push is best-effort
+      }
+
       fetchData();
     } catch (error: any) {
       console.error("Assignment error:", error);
