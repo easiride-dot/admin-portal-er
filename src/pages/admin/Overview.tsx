@@ -41,7 +41,7 @@ export const Dashboard = () => {
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("drivers").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("rides").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("rides").select("*", { count: "exact", head: true }).eq("status", "pool_locked_awaiting_driver"),
         supabase.from("rides").select("price").eq("status", "completed").gte("created_at", today.toISOString()),
         supabase.from("rides").select("price").eq("status", "completed").gte("created_at", lastWeek.toISOString()),
         supabase.from("rides").select("*").order("created_at", { ascending: false }).limit(5)

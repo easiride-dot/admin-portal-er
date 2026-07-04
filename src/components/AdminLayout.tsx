@@ -12,27 +12,27 @@ export const AdminLayout = () => {
 
   if (isMobile) {
     return (
-      <div className="flex h-screen overflow-hidden bg-background">
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <div className="flex h-screen overflow-hidden bg-background">
           <SheetContent side="left" className="w-64 p-0">
             <Sidebar onNavClick={() => setSheetOpen(false)} />
           </SheetContent>
-        </Sheet>
 
-        <div className="flex flex-1 flex-col">
-          <header className="flex items-center gap-3 border-b border-hairline/60 bg-background px-4 py-3">
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <span className="text-sm font-semibold">Easi Ride — Operations Portal</span>
-          </header>
-          <main className="flex-1 overflow-y-auto bg-secondary/10 px-4 py-6">
-            <Outlet />
-          </main>
+          <div className="flex flex-1 flex-col">
+            <header className="flex items-center gap-3 border-b border-hairline/60 bg-background px-4 py-3">
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="shrink-0">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <span className="text-sm font-semibold">Easi Ride — Operations Portal</span>
+            </header>
+            <main className="flex-1 overflow-y-auto bg-secondary/10 px-4 py-6">
+              <Outlet />
+            </main>
+          </div>
         </div>
-      </div>
+      </Sheet>
     );
   }
 
