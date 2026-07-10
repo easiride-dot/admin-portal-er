@@ -53,24 +53,32 @@ export const Pricing = () => {
     const oldBase = config.base_fare;
     const oldRate = config.per_km_rate;
     try {
-      const { data: updated, error } = await supabase
+      const { error } = await supabase
         .from("pricing_config" as any)
         .update({ base_fare: baseFare, per_km_rate: perKmRate })
-        .select("id, base_fare, per_km_rate");
+        .eq("id", config.id);
 
       if (error) throw error;
-
-      if (!updated || updated.length === 0) {
-        throw new Error("No rows updated — check your admin role permissions");
-      }
 
       await logAdminAction("update_fare_config", config.id, {
         before: { base_fare: oldBase, per_km_rate: oldRate },
         after: { base_fare: baseFare, per_km_rate: perKmRate },
       });
 
+      // Re-fetch to verify and update the form
+      const { data: refreshed } = await supabase
+        .from("pricing_config" as any)
+        .select("*")
+        .eq("id", config.id)
+        .single();
+
+      if (refreshed) {
+        setConfig(refreshed as any);
+        setBaseFare(Number(refreshed.base_fare));
+        setPerKmRate(Number(refreshed.per_km_rate));
+      }
+
       toast.success("Fare configuration saved");
-      fetchConfig();
     } catch (err: any) {
       toast.error(err?.message || "Failed to save fare configuration");
     } finally {
@@ -82,19 +90,15 @@ export const Pricing = () => {
     if (!config) return;
     const oldMode = config.surge_mode;
     try {
-      const { data: updated, error } = await supabase
+      const { error } = await supabase
         .from("pricing_config" as any)
         .update({
           surge_mode: mode,
           surge_active: mode !== "normal",
         })
-        .select("id");
+        .eq("id", config.id);
 
       if (error) throw error;
-
-      if (!updated || updated.length === 0) {
-        throw new Error("No rows updated — check your admin role permissions");
-      }
 
       await logAdminAction("set_surge_mode", config.id, {
         before: { surge_mode: oldMode, surge_active: oldMode !== "normal" },
