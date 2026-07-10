@@ -55,8 +55,7 @@ export const Pricing = () => {
     try {
       const { error } = await supabase
         .from("pricing_config" as any)
-        .update({ base_fare: baseFare, per_km_rate: perKmRate })
-        .eq("id", config.id);
+        .update({ base_fare: baseFare, per_km_rate: perKmRate });
 
       if (error) throw error;
 
@@ -83,8 +82,7 @@ export const Pricing = () => {
         .update({
           surge_mode: mode,
           surge_active: mode !== "normal",
-        })
-        .eq("id", config.id);
+        });
 
       if (error) throw error;
 
