@@ -53,11 +53,16 @@ export const Pricing = () => {
     const oldBase = config.base_fare;
     const oldRate = config.per_km_rate;
     try {
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("pricing_config" as any)
-        .update({ base_fare: baseFare, per_km_rate: perKmRate });
+        .update({ base_fare: baseFare, per_km_rate: perKmRate })
+        .select("id, base_fare, per_km_rate");
 
       if (error) throw error;
+
+      if (!updated || updated.length === 0) {
+        throw new Error("No rows updated — check your admin role permissions");
+      }
 
       await logAdminAction("update_fare_config", config.id, {
         before: { base_fare: oldBase, per_km_rate: oldRate },
@@ -66,8 +71,8 @@ export const Pricing = () => {
 
       toast.success("Fare configuration saved");
       fetchConfig();
-    } catch {
-      toast.error("Failed to save fare configuration");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save fare configuration");
     } finally {
       setSaving(false);
     }
@@ -77,14 +82,19 @@ export const Pricing = () => {
     if (!config) return;
     const oldMode = config.surge_mode;
     try {
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("pricing_config" as any)
         .update({
           surge_mode: mode,
           surge_active: mode !== "normal",
-        });
+        })
+        .select("id");
 
       if (error) throw error;
+
+      if (!updated || updated.length === 0) {
+        throw new Error("No rows updated — check your admin role permissions");
+      }
 
       await logAdminAction("set_surge_mode", config.id, {
         before: { surge_mode: oldMode, surge_active: oldMode !== "normal" },
