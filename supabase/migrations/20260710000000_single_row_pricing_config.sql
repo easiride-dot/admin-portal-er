@@ -3,12 +3,12 @@
 -- Run this in the Supabase SQL editor
 -- ============================================================
 
--- Drop bracket-based unique constraint (no longer needed)
+-- Drop all constraints on pricing_config (we're moving to a single global row)
 alter table pricing_config drop constraint if exists pricing_config_distance_bracket_ride_type_key;
-
--- Drop check constraints that prevent a single global row
 alter table pricing_config drop constraint if exists pricing_config_distance_bracket_check;
 alter table pricing_config drop constraint if exists pricing_config_ride_type_check;
+alter table pricing_config drop constraint if exists pricing_config_gross_fare_check;
+alter table pricing_config drop constraint if exists pricing_config_commission_check;
 
 -- Delete all bracket-based rows and insert one global row
 delete from pricing_config;
