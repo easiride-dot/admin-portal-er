@@ -14,7 +14,8 @@ import {
   Eye,
   ShieldCheck,
   ShieldAlert,
-  ShieldQuestion
+  ShieldQuestion,
+  Radio
 } from "lucide-react";
 import { logAdminAction } from "@/lib/logging";
 import {
@@ -31,6 +32,8 @@ export const RideRequests = () => {
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [selectedStudentPreviewUrl, setSelectedStudentPreviewUrl] = useState<string | null>(null);
+  const [showAssignFor, setShowAssignFor] = useState<string | null>(null);
+  const [invitationCounts, setInvitationCounts] = useState<Record<string, number>>({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -76,6 +79,19 @@ export const RideRequests = () => {
     }
   };
 
+  const fetchInvitationCounts = async (searchingRides: any[]) => {
+    const counts: Record<string, number> = {};
+    for (const ride of searchingRides) {
+      const { count } = await supabase
+        .from("ride_invitations" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("ride_id", ride.id)
+        .eq("status", "pending");
+      counts[ride.id] = count ?? 0;
+    }
+    setInvitationCounts(counts);
+  };
+
   useEffect(() => {
     fetchData();
     const channel = supabase
@@ -84,6 +100,13 @@ export const RideRequests = () => {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  useEffect(() => {
+    const searching = rides.filter(r => r.status === "searching_driver");
+    if (searching.length > 0) {
+      fetchInvitationCounts(searching);
+    }
+  }, [rides]);
 
   const handleAssign = async (rideId: string, driverId: string) => {
     if (!driverId) return;
@@ -313,21 +336,91 @@ export const RideRequests = () => {
 
               <div className="mt-6 pt-6 border-t border-hairline/60 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  {ride.status === 'pending' || ride.status === 'pending_friend_commitment' || ride.status === 'pool_locked_awaiting_driver' || ride.status === 'searching_driver' ? (
-                    <div className="flex items-center gap-2">
-                      <select
-                        className="bg-secondary/50 border border-hairline rounded-xl px-4 py-2 text-sm outline-none"
-                        onChange={(e) => handleAssign(ride.id, e.target.value)}
-                        defaultValue=""
-                      >
-                        <option value="" disabled>Choose Driver...</option>
-                        {drivers.map(d => (
-                          <option key={d.id} value={d.id}>{d.full_name} ({d.vehicle})</option>
-                        ))}
-                      </select>
-                      <Button size="sm" variant="ghost" className="text-muted-foreground">
-                        <AlertCircle className="h-4 w-4 mr-2" /> Pending
-                      </Button>
+                  {ride.status === 'searching_driver' ? (
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="h-8 w-8 rounded-full bg-purple-50 flex items-center justify-center">
+                          <Radio className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground font-medium">Autonomous dispatch active</span>
+                          <span className="ml-1 text-purple-600 font-bold text-xs">
+                            {invitationCounts[ride.id] ?? "..."} driver{invitationCounts[ride.id] !== 1 ? "s" : ""} notified
+                          </span>
+                        </div>
+                      </div>
+                      {showAssignFor === ride.id ? (
+                        <div className="flex items-center gap-2">
+                          <select
+                            className="bg-secondary/50 border border-hairline rounded-xl px-4 py-2 text-sm outline-none"
+                            onChange={(e) => {
+                              handleAssign(ride.id, e.target.value);
+                              setShowAssignFor(null);
+                            }}
+                            defaultValue=""
+                          >
+                            <option value="" disabled>Choose Driver...</option>
+                            {drivers.map(d => (
+                              <option key={d.id} value={d.id}>{d.full_name} ({d.vehicle})</option>
+                            ))}
+                          </select>
+                          <Button size="sm" variant="ghost" onClick={() => setShowAssignFor(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs border-dashed"
+                          onClick={() => setShowAssignFor(ride.id)}
+                        >
+                          <AlertCircle className="h-3 w-3 mr-1" /> Override
+                        </Button>
+                      )}
+                    </div>
+                  ) : ride.status === 'pool_locked_awaiting_driver' ? (
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center">
+                        <Radio className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground font-medium">Waiting for broadcast</span>
+                        <span className="ml-1 text-amber-600 font-semibold text-xs">student will trigger dispatch</span>
+                      </div>
+                      {showAssignFor === ride.id ? (
+                        <div className="flex items-center gap-2">
+                          <select
+                            className="bg-secondary/50 border border-hairline rounded-xl px-4 py-2 text-sm outline-none"
+                            onChange={(e) => {
+                              handleAssign(ride.id, e.target.value);
+                              setShowAssignFor(null);
+                            }}
+                            defaultValue=""
+                          >
+                            <option value="" disabled>Choose Driver...</option>
+                            {drivers.map(d => (
+                              <option key={d.id} value={d.id}>{d.full_name} ({d.vehicle})</option>
+                            ))}
+                          </select>
+                          <Button size="sm" variant="ghost" onClick={() => setShowAssignFor(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="outline" className="text-xs border-dashed" onClick={() => setShowAssignFor(ride.id)}>
+                          <AlertCircle className="h-3 w-3 mr-1" /> Override
+                        </Button>
+                      )}
+                    </div>
+                  ) : ride.status === 'pending_friend_commitment' ? (
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center">
+                        <Clock className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground font-medium">Waiting for friend</span>
+                      </div>
                     </div>
                   ) : ride.status === 'pending_driver_acceptance' ? (
                     <div className="flex items-center gap-3 text-sm">
