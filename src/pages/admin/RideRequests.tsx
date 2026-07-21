@@ -193,10 +193,12 @@ export const RideRequests = () => {
             key={ride.id} 
             className={`glass-card rounded-3xl overflow-hidden border-l-4 transition-all hover:shadow-elevated ${
               ride.status === 'pending' || ride.status === 'pending_friend_commitment' ? 'border-amber-400' :
+              ride.status === 'searching_driver' ? 'border-purple-400' :
               ride.status === 'pending_driver_acceptance' ? 'border-orange-400' :
               ride.status === 'driver_assigned' ? 'border-blue-400' :
               ride.status === 'in_progress' ? 'border-purple-400' :
-              'border-emerald-400'
+              ride.status === 'completed' || ride.status === 'paid_and_dispatched' ? 'border-emerald-400' :
+              'border-gray-400'
             }`}
           >
             <div className="p-6">
@@ -311,7 +313,7 @@ export const RideRequests = () => {
 
               <div className="mt-6 pt-6 border-t border-hairline/60 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  {ride.status === 'pending' || ride.status === 'pending_friend_commitment' || ride.status === 'pool_locked_awaiting_driver' ? (
+                  {ride.status === 'pending' || ride.status === 'pending_friend_commitment' || ride.status === 'pool_locked_awaiting_driver' || ride.status === 'searching_driver' ? (
                     <div className="flex items-center gap-2">
                       <select
                         className="bg-secondary/50 border border-hairline rounded-xl px-4 py-2 text-sm outline-none"
@@ -456,19 +458,25 @@ const StatusBadge = ({ status }: { status: string }) => {
     pending: "Pending",
     pending_friend_commitment: "Friend Pending",
     pool_locked_awaiting_driver: "Pool Locked",
+    searching_driver: "Searching for Driver",
     pending_driver_acceptance: "Awaiting Driver",
     driver_assigned: "Driver Assigned",
+    driver_arrived: "Driver Arrived",
     in_progress: "In Progress",
     completed: "Completed",
+    cancelled: "Cancelled",
   };
   const colors: Record<string, string> = {
     pending: "bg-amber-100 text-amber-700 ring-amber-200",
     pending_friend_commitment: "bg-amber-100 text-amber-700 ring-amber-200",
     pool_locked_awaiting_driver: "bg-amber-100 text-amber-700 ring-amber-200",
+    searching_driver: "bg-purple-100 text-purple-700 ring-purple-200",
     pending_driver_acceptance: "bg-orange-100 text-orange-700 ring-orange-200",
     driver_assigned: "bg-blue-100 text-blue-700 ring-blue-200",
+    driver_arrived: "bg-indigo-100 text-indigo-700 ring-indigo-200",
     in_progress: "bg-purple-100 text-purple-700 ring-purple-200",
     completed: "bg-emerald-100 text-emerald-700 ring-emerald-200",
+    cancelled: "bg-red-100 text-red-700 ring-red-200",
   };
   return (
     <span className={`text-[10px] uppercase font-bold tracking-[0.2em] px-3 py-1.5 rounded-full ring-1 ${colors[status] || "bg-secondary"}`}>
