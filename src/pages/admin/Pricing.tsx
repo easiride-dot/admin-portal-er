@@ -36,13 +36,16 @@ export const Pricing = () => {
       .maybeSingle();
 
     if (error) {
-      toast.error("Failed to load pricing configuration");
+      console.error("fetchConfig error:", error);
+      toast.error("Failed to load pricing configuration: " + error.message);
     } else if (data) {
       const cfg = data as unknown as PricingConfig;
       setConfig(cfg);
-      setBaseFare(Number(cfg.base_fare));
-      setPerKmRate(Number(cfg.per_km_rate));
-      setSurgeMode(cfg.surge_mode);
+      if (cfg.base_fare != null) setBaseFare(Number(cfg.base_fare));
+      if (cfg.per_km_rate != null) setPerKmRate(Number(cfg.per_km_rate));
+      if (cfg.surge_mode) setSurgeMode(cfg.surge_mode);
+    } else {
+      toast.error("No pricing configuration found in database. Run the pricing migrations.");
     }
     setLoading(false);
   };
