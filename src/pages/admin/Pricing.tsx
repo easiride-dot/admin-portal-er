@@ -48,11 +48,24 @@ export const Pricing = () => {
   };
 
   const handleSaveFare = async () => {
-    if (!config) return;
+    if (!config) { toast.error("Pricing config not loaded. Refresh the page."); return; }
     setSaving(true);
     const oldBase = config.base_fare;
     const oldRate = config.per_km_rate;
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: roleCheck } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user?.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!roleCheck) {
+        toast.error("You don't have admin permissions to update pricing.");
+        setSaving(false);
+        return;
+      }
+
       const { error } = await supabase
         .from("pricing_config" as any)
         .update({ base_fare: baseFare, per_km_rate: perKmRate })
