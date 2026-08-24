@@ -155,7 +155,7 @@ export const RideRequests = () => {
       await logAdminAction("assign_driver", rideId, { driver_id: driverId, driver_name: driver.full_name });
       toast.success(`Awaiting ${driver.full_name}'s response`);
 
-      // Push notification to driver via Supabase Edge Function
+      // Push notification to driver via admin-gated edge function
       try {
         const { data: rideData } = await supabase
           .from("rides")
@@ -163,9 +163,13 @@ export const RideRequests = () => {
           .eq("id", rideId)
           .single();
 
-        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-push-notification`, {
+        const { data: { session } } = await supabase.auth.getSession();
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-user`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_PUSH_NOTIFICATIONS_API_KEY },
+          headers: {
+            "Content-Type": "application/json",
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
           body: JSON.stringify({
             userId: driverId,
             title: "New Ride Assigned",

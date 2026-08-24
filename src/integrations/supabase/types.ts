@@ -22,6 +22,22 @@ export type Database = {
           vehicle: string
           status: string
           created_at: string
+          plate_number: string | null
+          onboarding_completed: boolean | null
+          driver_status: string | null
+          ride_mode: string | null
+          shared_max_seats: number | null
+          rating: number | null
+          total_trips: number | null
+          lat: number | null
+          lon: number | null
+          updated_at: string | null
+          user_id: string | null
+          driver_code: string | null
+          approval_status: string | null
+          approved_by: string | null
+          approved_at: string | null
+          rejection_reason: string | null
         }
         Insert: {
           id?: string
@@ -30,6 +46,22 @@ export type Database = {
           vehicle: string
           status?: string
           created_at?: string
+          plate_number?: string | null
+          onboarding_completed?: boolean | null
+          driver_status?: string | null
+          ride_mode?: string | null
+          shared_max_seats?: number | null
+          rating?: number | null
+          total_trips?: number | null
+          lat?: number | null
+          lon?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          driver_code?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          rejection_reason?: string | null
         }
         Update: {
           id?: string
@@ -38,6 +70,22 @@ export type Database = {
           vehicle?: string
           status?: string
           created_at?: string
+          plate_number?: string | null
+          onboarding_completed?: boolean | null
+          driver_status?: string | null
+          ride_mode?: string | null
+          shared_max_seats?: number | null
+          rating?: number | null
+          total_trips?: number | null
+          lat?: number | null
+          lon?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          driver_code?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          rejection_reason?: string | null
         }
         Relationships: []
       }
@@ -194,6 +242,37 @@ export type Database = {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
+        }
+        Returns: boolean
+      }
+      generate_driver_code: {
+        Args: {
+          p_driver_id: string
+        }
+        Returns: string
+      }
+      approve_driver: {
+        Args: {
+          p_driver_id: string
+        }
+        Returns: boolean
+      }
+      reject_driver: {
+        Args: {
+          p_driver_id: string
+          p_reason: string
+        }
+        Returns: boolean
+      }
+      claim_driver_code: {
+        Args: {
+          p_code: string
+        }
+        Returns: boolean
+      }
+      is_approved_driver: {
+        Args: {
+          p_user_id: string
         }
         Returns: boolean
       }

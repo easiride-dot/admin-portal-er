@@ -13,7 +13,7 @@ import NotFound from "./pages/NotFound.tsx";
 // Admin Pages
 import { Dashboard as Overview } from "./pages/admin/Overview";
 import { Students } from "./pages/admin/Students";
-import { Drivers } from "./pages/admin/Drivers";
+import { Drivers } from "./pages/admin/drivers";
 import { RideRequests } from "./pages/admin/RideRequests";
 import { Payments } from "./pages/admin/Payments";
 import { Pricing } from "./pages/admin/Pricing";

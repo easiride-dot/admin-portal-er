@@ -39,7 +39,7 @@ type SidebarProps = {
 
 export const Sidebar = ({ onNavClick }: SidebarProps) => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const inConfig = configItems.some((i) => location.pathname === i.to);
   const [configOpen, setConfigOpen] = useState(inConfig);
 
@@ -48,7 +48,7 @@ export const Sidebar = ({ onNavClick }: SidebarProps) => {
       <div className="p-6">
         <Logo />
         <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-          Operations Portal
+          Admin Portal
         </p>
       </div>
 
@@ -124,7 +124,16 @@ export const Sidebar = ({ onNavClick }: SidebarProps) => {
         </div>
       </nav>
 
-      <div className="p-4 border-t border-hairline/60">
+      <div className="border-t border-hairline/60 p-4">
+        <div className="mb-3 flex items-center gap-3 px-1">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-foreground">
+            {(user?.email?.[0] ?? "A").toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-xs font-medium text-foreground">{user?.email ?? "Administrator"}</p>
+            <p className="text-[10px] text-muted-foreground">Administrator</p>
+          </div>
+        </div>
         <Button 
           variant="ghost" 
           size="sm" 

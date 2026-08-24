@@ -25,7 +25,7 @@ export const AdminLayout = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <span className="text-sm font-semibold">Easi Ride — Operations Portal</span>
+              <span className="text-sm font-semibold">Easi Ride — Admin Portal</span>
             </header>
             <main className="flex-1 overflow-y-auto bg-secondary/10 px-4 py-6">
               <Outlet />
