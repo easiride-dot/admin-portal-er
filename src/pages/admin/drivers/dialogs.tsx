@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeyRound } from "lucide-react";
+import { KeyRound, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -99,6 +99,50 @@ export const ApproveDialog = ({ driver, open, busy, onOpenChange, onConfirm }: A
           </Button>
           <Button type="button" onClick={onConfirm} disabled={busy}>
             {busy ? "Approving…" : "Approve Driver"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export interface DeleteDialogProps {
+  driver: Driver | null;
+  open: boolean;
+  busy: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}
+
+export const DeleteDialog = ({ driver, open, busy, onOpenChange, onConfirm }: DeleteDialogProps) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete driver account?</DialogTitle>
+          <DialogDescription>
+            This permanently removes the driver's login, profile, vehicle record and any uploaded documents. Ride
+            history involving this driver stays, but shows as unassigned. This cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        {driver && (
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-sm">
+            <p className="font-medium text-foreground">{driver.full_name}</p>
+            <p className="mt-0.5 text-muted-foreground">
+              {driver.phone}
+              {driver.driver_code ? ` · ${driver.driver_code}` : ""}
+            </p>
+          </div>
+        )}
+
+        <DialogFooter className="gap-2 sm:justify-end">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+            Cancel
+          </Button>
+          <Button type="button" variant="destructive" onClick={onConfirm} disabled={busy}>
+            <Trash2 className="h-4 w-4" />
+            {busy ? "Deleting…" : "Delete Permanently"}
           </Button>
         </DialogFooter>
       </DialogContent>

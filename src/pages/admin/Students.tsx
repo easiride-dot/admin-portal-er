@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { logAdminAction } from "@/lib/logging";
+import { deleteUserWithFiles } from "@/lib/delete-account";
 
 export const Students = () => {
   const [students, setStudents] = useState<any[]>([]);
@@ -120,15 +121,16 @@ export const Students = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this student?")) return;
-    
-    const { error } = await supabase.from('profiles').delete().eq('id', id);
-    if (error) {
-      toast.error("Deletion failed");
-    } else {
+  const handleDelete = async (student: any) => {
+    if (!confirm(`Permanently delete ${student.full_name || "this student"}'s account? Their login, rides and uploaded ID will be removed.`)) return;
+
+    try {
+      await deleteUserWithFiles(student.id);
       toast.success("Student deleted");
       fetchStudents();
+    } catch (error: any) {
+      toast.error(error?.message || "Deletion failed");
+      console.error(error);
     }
   };
 
@@ -261,7 +263,7 @@ export const Students = () => {
                                 <XCircle className="h-4 w-4" /> Reject ID
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive" onClick={() => handleDelete(student.id)}>
+                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive" onClick={() => handleDelete(student)}>
                               <Trash2 className="h-4 w-4" /> Delete Account
                             </DropdownMenuItem>
                           </DropdownMenuContent>

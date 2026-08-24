@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Copy, KeyRound, Star, Ban } from "lucide-react";
+import { Copy, KeyRound, Star, Ban, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -16,6 +16,7 @@ interface DriverDrawerProps {
   onCopyCode: (code: string) => void;
   onApprove: (driver: Driver) => void;
   onReject: (driver: Driver) => void;
+  onDelete: (driver: Driver) => void;
 }
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
@@ -39,6 +40,7 @@ const Body = ({
   onCopyCode,
   onApprove,
   onReject,
+  onDelete,
 }: {
   driver: Driver;
   generatingId: string | null;
@@ -46,6 +48,7 @@ const Body = ({
   onCopyCode: (code: string) => void;
   onApprove: (driver: Driver) => void;
   onReject: (driver: Driver) => void;
+  onDelete: (driver: Driver) => void;
 }) => {
   const isPending = driver.approval_status === "pending";
 
@@ -174,6 +177,17 @@ const Body = ({
           </Button>
         </div>
       )}
+
+      <div className="border-t border-border pt-5">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full gap-1.5 rounded-xl text-destructive hover:bg-red-500/10 hover:text-destructive"
+          onClick={() => onDelete(driver)}
+        >
+          <Trash2 className="h-4 w-4" /> Delete Account
+        </Button>
+      </div>
     </div>
   );
 };
@@ -187,6 +201,7 @@ export const DriverDrawer = ({
   onCopyCode,
   onApprove,
   onReject,
+  onDelete,
 }: DriverDrawerProps) => {
   const isMobile = useIsMobile();
 
@@ -200,6 +215,7 @@ export const DriverDrawer = ({
       onCopyCode={onCopyCode}
       onApprove={onApprove}
       onReject={onReject}
+      onDelete={onDelete}
     />
   );
 

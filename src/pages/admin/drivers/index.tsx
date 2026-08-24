@@ -7,7 +7,8 @@ import { StatCards } from "./statCards";
 import { Filters, DEFAULT_FILTERS, type FilterState } from "./filters";
 import { DriverTable, type EmptyKind } from "./table";
 import { DriverDrawer } from "./drawer";
-import { ApproveDialog, GenerateCodeDialog, RejectDialog } from "./dialogs";
+import { ApproveDialog, DeleteDialog, GenerateCodeDialog, RejectDialog } from "./dialogs";
+import { deleteUserWithFiles } from "@/lib/delete-account";
 import type { Driver } from "./types";
 
 const ERROR_MESSAGES = {
@@ -15,6 +16,7 @@ const ERROR_MESSAGES = {
   generate: "Unable to generate driver code.",
   approve: "Unable to approve driver.",
   reject: "Unable to reject driver.",
+  delete: "Unable to delete driver account.",
 };
 
 const classifyGenerateError = (message: string): { title: string; description?: string } => {
@@ -51,6 +53,10 @@ export const Drivers = () => {
   const [rejectTarget, setRejectTarget] = useState<Driver | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
+
+  const [deleteTarget, setDeleteTarget] = useState<Driver | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchDrivers = useCallback(async () => {
     setLoading(true);
@@ -266,6 +272,39 @@ export const Drivers = () => {
     setRejectTarget(driver);
     setRejectOpen(true);
   };
+  const openDelete = (driver: Driver) => {
+    setDeleteTarget(driver);
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deleteTarget || deletingId) return;
+    setDeletingId(deleteTarget.id);
+    try {
+      await deleteUserWithFiles(deleteTarget.id);
+      toast.success("Driver account deleted.");
+      const wasSelected = selectedDriver?.id === deleteTarget.id;
+      setDrivers((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+      if (wasSelected) {
+        setSelectedDriver(null);
+        setDrawerOpen(false);
+      }
+      setDeleteOpen(false);
+      setDeleteTarget(null);
+    } catch (error: any) {
+      console.error("Delete driver failed:", error);
+      const msg = error?.message || "";
+      if (/own account/i.test(msg)) {
+        toast.error(msg);
+      } else if (/admin|privilege|permission|authoriz/i.test(msg)) {
+        toast.error("Only administrators can delete accounts.");
+      } else {
+        toast.error(ERROR_MESSAGES.delete, { description: msg });
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -322,6 +361,7 @@ export const Drivers = () => {
         onCopyCode={copyCode}
         onApprove={openApprove}
         onReject={openReject}
+        onDelete={openDelete}
       />
 
       <GenerateCodeDialog
@@ -346,6 +386,14 @@ export const Drivers = () => {
         busy={rejectingId !== null}
         onOpenChange={setRejectOpen}
         onConfirm={handleReject}
+      />
+
+      <DeleteDialog
+        driver={deleteTarget}
+        open={deleteOpen}
+        busy={deletingId !== null}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDeleteAccount}
       />
     </div>
   );
