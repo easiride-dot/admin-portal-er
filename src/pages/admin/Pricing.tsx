@@ -16,6 +16,13 @@ interface PricingConfig {
   surge_rain: number;
 }
 
+interface WeeklyBandRow {
+  id?: string;
+  min_km: string;
+  max_km: string;
+  gross_fare: string;
+}
+
 export const Pricing = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -23,9 +30,12 @@ export const Pricing = () => {
   const [baseFare, setBaseFare] = useState(7);
   const [perKmRate, setPerKmRate] = useState(7);
   const [surgeMode, setSurgeMode] = useState<"normal" | "peak" | "rain">("normal");
+  const [bands, setBands] = useState<WeeklyBandRow[]>([]);
+  const [savingBands, setSavingBands] = useState(false);
 
   useEffect(() => {
     fetchConfig();
+    fetchBands();
   }, []);
 
   const fetchConfig = async () => {
@@ -125,6 +135,111 @@ export const Pricing = () => {
       toast.success(`Surge mode set to ${mode.toUpperCase()}`);
     } catch {
       toast.error("Failed to update surge mode");
+    }
+  };
+
+  const fetchBands = async () => {
+    const { data, error } = await supabase
+      .from("pricing_config" as any)
+      .select("*")
+      .eq("ride_type", "weekly")
+      .order("min_km", { ascending: true });
+
+    if (error) {
+      console.error("fetchBands error:", error);
+      return;
+    }
+    setBands(
+      ((data ?? []) as any[]).map((r) => ({
+        id: r.id as string,
+        min_km: String(Number(r.min_km ?? 0)),
+        max_km: String(Number(r.max_km ?? 0)),
+        gross_fare: String(Number(r.gross_fare ?? 0)),
+      })),
+    );
+  };
+
+  const updateBand = (idx: number, patch: Partial<WeeklyBandRow>) =>
+    setBands((prev) => prev.map((b, i) => (i === idx ? { ...b, ...patch } : b)));
+
+  const addBand = () => setBands((prev) => [...prev, { min_km: "", max_km: "", gross_fare: "" }]);
+
+  const removeBand = (idx: number) => setBands((prev) => prev.filter((_, i) => i !== idx));
+
+  const handleSaveBands = async () => {
+    const parsed = bands.map((b) => ({
+      id: b.id,
+      min: parseFloat(b.min_km),
+      max: parseFloat(b.max_km),
+      price: parseFloat(b.gross_fare),
+    }));
+    for (const b of parsed) {
+      if (
+        !isFinite(b.min) || !isFinite(b.max) || !isFinite(b.price) ||
+        b.min < 0 || b.max <= b.min || b.price < 0
+      ) {
+        toast.error("Each band needs a price and a max km greater than its min km.");
+        return;
+      }
+    }
+    const sorted = [...parsed].sort((a, b) => a.min - b.min);
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].min < sorted[i - 1].max) {
+        toast.error("Bands cannot overlap — adjust the km boundaries.");
+        return;
+      }
+    }
+
+    setSavingBands(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: roleCheck } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user?.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!roleCheck) {
+        toast.error("You don't have admin permissions to update pricing.");
+        return;
+      }
+
+      const keptIds = new Set(parsed.filter((b) => b.id).map((b) => b.id!));
+      const { data: existing } = await supabase
+        .from("pricing_config" as any)
+        .select("id")
+        .eq("ride_type", "weekly");
+      for (const row of ((existing ?? []) as unknown as { id: string }[])) {
+        if (!keptIds.has(row.id)) {
+          const { error: delError } = await supabase.from("pricing_config" as any).delete().eq("id", row.id);
+          if (delError) throw delError;
+        }
+      }
+
+      for (const b of parsed) {
+        const payload = {
+          ride_type: "weekly",
+          distance_bracket: `${b.min}-${b.max}`,
+          min_km: b.min,
+          max_km: b.max,
+          gross_fare: b.price,
+        };
+        const { error } = b.id
+          ? await supabase.from("pricing_config" as any).update(payload).eq("id", b.id)
+          : await supabase.from("pricing_config" as any).insert(payload);
+        if (error) throw error;
+      }
+
+      await logAdminAction("update_weekly_bands", config?.id, {
+        bands: parsed.map((b) => ({ min_km: b.min, max_km: b.max, gross_fare: b.price })),
+      });
+
+      await fetchBands();
+      toast.success("Weekly distance bands saved");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save weekly bands");
+    } finally {
+      setSavingBands(false);
     }
   };
 
@@ -243,6 +358,76 @@ export const Pricing = () => {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* SECTION D — Student Weekly Distance Bands */}
+      <div className="bg-card border rounded-xl p-6">
+        <h2 className="text-lg font-semibold mb-1">Student Weekly Bands</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Weekly package price is picked by the pickup → campus distance. Distances below the first band pay the
+          cheapest band; distances above the last band pay the most expensive one.
+        </p>
+
+        <div className="space-y-3 mb-4">
+          {bands.length === 0 && (
+            <p className="text-sm text-muted-foreground">No bands configured yet — add the first one below.</p>
+          )}
+          {bands.map((band, idx) => (
+            <div key={band.id ?? `new-${idx}`} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end border rounded-lg p-3">
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">Min KM</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={band.min_km}
+                  onChange={(e) => updateBand(idx, { min_km: e.target.value })}
+                  className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">Max KM</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={band.max_km}
+                  onChange={(e) => updateBand(idx, { max_km: e.target.value })}
+                  className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">Price (NLe / week)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={band.gross_fare}
+                  onChange={(e) => updateBand(idx, { gross_fare: e.target.value })}
+                  className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <button
+                onClick={() => removeBand(idx)}
+                className="px-3 py-2 rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors"
+                title="Delete band"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={addBand}>+ Add Band</Button>
+          <Button onClick={handleSaveBands} disabled={savingBands}>
+            {savingBands ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+            ) : (
+              <><Save className="h-4 w-4 mr-2" /> Save Bands</>
+            )}
+          </Button>
         </div>
       </div>
     </div>
