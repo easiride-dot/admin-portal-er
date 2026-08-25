@@ -623,7 +623,7 @@ export const Pricing = () => {
                   step="0.1"
                   min="0"
                   value={band.min_km}
-                  onChange={(e) => updateBand(creditBands, setCreditBands, idx, { min_km: e.target.value })}
+                  onChange={(e) => updateBandRows(creditBands, setCreditBands, idx, { min_km: e.target.value })}
                   className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -634,7 +634,7 @@ export const Pricing = () => {
                   step="0.1"
                   min="0"
                   value={band.max_km}
-                  onChange={(e) => updateBand(creditBands, setCreditBands, idx, { max_km: e.target.value })}
+                  onChange={(e) => updateBandRows(creditBands, setCreditBands, idx, { max_km: e.target.value })}
                   className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -645,12 +645,12 @@ export const Pricing = () => {
                   step="1"
                   min="0"
                   value={band.gross_fare}
-                  onChange={(e) => updateBand(creditBands, setCreditBands, idx, { gross_fare: e.target.value })}
+                  onChange={(e) => updateBandRows(creditBands, setCreditBands, idx, { gross_fare: e.target.value })}
                   className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <button
-                onClick={() => removeBand(creditBands, setCreditBands, idx)}
+                onClick={() => removeBandRows(creditBands, setCreditBands, idx)}
                 className="px-3 py-2 rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors"
                 title="Delete band"
               >
