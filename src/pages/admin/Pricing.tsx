@@ -230,14 +230,15 @@ export const Pricing = () => {
       }
     }
 
-    for (const b of parsed) {
-      const payload = {
-        ride_type: rideType,
-        distance_bracket: `${b.min}-${b.max}`,
-        min_km: b.min,
-        max_km: b.max,
-        gross_fare: b.price,
-      };
+      for (const b of parsed) {
+        const payload = {
+          ride_type: rideType,
+          distance_bracket: `${b.min}-${b.max}`,
+          min_km: b.min,
+          max_km: b.max,
+          gross_fare: b.price,
+          commission: 0,
+        };
       const { error } = b.id
         ? await supabase.from("pricing_config" as any).update(payload).eq("id", b.id)
         : await supabase.from("pricing_config" as any).insert(payload);
