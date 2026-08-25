@@ -198,9 +198,9 @@ export const Pricing = () => {
     for (const b of parsed) {
       if (
         !isFinite(b.min) || !isFinite(b.max) || !isFinite(b.price) ||
-        b.min < 0 || b.max <= b.min || b.price < 0
+        b.min < 0 || b.max <= b.min || b.price <= 0
       ) {
-        toast.error("Each band needs a value and a max km greater than its min km.");
+        toast.error("Each band needs a value greater than zero and a max km greater than its min km.");
         return null;
       }
     }
