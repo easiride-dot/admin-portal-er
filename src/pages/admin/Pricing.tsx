@@ -51,7 +51,7 @@ export const Pricing = () => {
     const { data, error } = await supabase
       .from("pricing_config" as any)
       .select("*")
-      .limit(1)
+      .eq("ride_type", "global")
       .maybeSingle();
 
     if (error) {
