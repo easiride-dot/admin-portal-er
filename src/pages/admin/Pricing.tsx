@@ -39,12 +39,15 @@ export const Pricing = () => {
   const [creditMinTopup, setCreditMinTopup] = useState("2");
   const [creditExpiryDays, setCreditExpiryDays] = useState("30");
   const [savingCreditSettings, setSavingCreditSettings] = useState(false);
+  const [weeklyRidesLimit, setWeeklyRidesLimit] = useState("14");
+  const [savingWeeklyRidesLimit, setSavingWeeklyRidesLimit] = useState(false);
 
   useEffect(() => {
     fetchConfig();
     loadBands("weekly").then(setBands);
     loadBands("easi_credit").then(setCreditBands);
     fetchCreditSettings();
+    fetchWeeklyRidesLimit();
   }, []);
 
   const fetchConfig = async () => {
@@ -186,6 +189,17 @@ export const Pricing = () => {
     }
   };
 
+  const fetchWeeklyRidesLimit = async () => {
+    const { data, error } = await supabase
+      .from("app_settings" as any)
+      .select("setting_value")
+      .eq("setting_name", "weekly_rides_limit")
+      .maybeSingle();
+    if (!error && data?.setting_value != null) {
+      setWeeklyRidesLimit(String(data.setting_value));
+    }
+  };
+
   const validateBands = (
     rows: WeeklyBandRow[],
   ): { id?: string; min: number; max: number; price: number }[] | null => {
@@ -293,6 +307,32 @@ export const Pricing = () => {
       toast.error(err?.message || "Failed to save weekly bands");
     } finally {
       setSavingBands(false);
+    }
+  };
+
+  const handleSaveWeeklyRidesLimit = async () => {
+    const n = parseInt(weeklyRidesLimit, 10);
+    if (!isFinite(n) || n <= 0) {
+      toast.error("Enter a valid positive number for max rides per week.");
+      return;
+    }
+    setSavingWeeklyRidesLimit(true);
+    try {
+      if (!(await requireAdminRole())) {
+        toast.error("You don't have admin permissions to update pricing.");
+        return;
+      }
+      const { error } = await supabase
+        .from("app_settings" as any)
+        .update({ setting_value: String(n), updated_at: new Date().toISOString() })
+        .eq("setting_name", "weekly_rides_limit");
+      if (error) throw error;
+      await logAdminAction("update_weekly_rides_limit", config?.id, { ridesLimit: n });
+      toast.success("Max rides per week saved");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save max rides per week");
+    } finally {
+      setSavingWeeklyRidesLimit(false);
     }
   };
 
@@ -482,6 +522,27 @@ export const Pricing = () => {
           Weekly package price is picked by the pickup → campus distance. Distances below the first band pay the
           cheapest band; distances above the last band pay the most expensive one.
         </p>
+
+        <div className="flex flex-wrap items-end gap-3 mb-4 border rounded-lg p-3">
+          <div>
+            <label className="block text-sm text-muted-foreground mb-1">Max rides per week</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={weeklyRidesLimit}
+              onChange={(e) => setWeeklyRidesLimit(e.target.value)}
+              className="w-32 px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <Button onClick={handleSaveWeeklyRidesLimit} disabled={savingWeeklyRidesLimit}>
+            {savingWeeklyRidesLimit ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+            ) : (
+              <><Save className="h-4 w-4 mr-2" /> Save Rides Limit</>
+            )}
+          </Button>
+        </div>
 
         <div className="space-y-3 mb-4">
           {bands.length === 0 && (
